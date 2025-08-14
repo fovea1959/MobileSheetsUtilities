@@ -109,8 +109,16 @@ where Setlists.name = ?
         adding_reader = pypdf.PdfReader(pdf)
         adding_page_count = adding_reader.get_num_pages()
         result_page_count = merger.get_num_pages()
-        logging.info ('adding %d pages from %s to existing %d pages', adding_page_count, pdf, result_page_count)
-        merger.append(pdf)
+
+        logging.info ('adding %d pages from %s to existing %d pages',
+                      adding_page_count, pdf, result_page_count)
+
+        if adding_page_count % 2 == 0:
+            if result_page_count % 2 == 0:
+                logging.info('adding a blank page')
+                merger.add_blank_page()
+
+        merger.append(adding_reader)
 
     merger.write("result.pdf")
     merger.close()
