@@ -3,12 +3,12 @@
   flex-direction: column;
 }
 
-#.title {
-#  align-self: center;
-#  font-family: sans-serif;
-#  font-weight: bold;
-#  font-size: xx-large;
-#}
+.title {
+  position: running(headerCenter);
+  font-family: sans-serif;
+  font-weight: bold;
+  font-size: xx-large;
+}
 
 .label {
   font-family: sans-serif;
@@ -29,21 +29,13 @@
   font-weight: bold;
 }
 
-@media print {
-    .title {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        /* Add any desired styling for the header, e.g., background, padding, text color */
-        background-color: #f0f0f0;
-        padding: 10px;
-        text-align: center;
-        border-bottom: 1px solid #ccc;
-    }
-
-    /* Add padding to the body to prevent content from being hidden by the fixed header */
-    body {
-        padding-top: 60px; /* Adjust this value based on your header's height */
-    }
+@page  {
+  size: letter;
+  margin: 20mm;
+  @top-center {
+    content: element(headerCenter) !important;
+  }
+  @top-right {
+    content: "Page " counter(page); /* Displays "Page X" */
+  }
 }

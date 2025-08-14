@@ -9,6 +9,9 @@ import tempfile
 import sqlite3
 
 import pypdf
+import weasyprint
+
+use_wkhtmltopdf = False
 
 
 def generate_path (tempdir_path, filename, suffix):
@@ -32,12 +35,17 @@ def generate_path_pdf(chordpro: str = None, transpose = 0, tempdir_path = None):
         return None
 
     pdf_filename = generate_path(tempdir_path, chordpro, '.pdf')
-    pdf_args = [ 'wkhtmltopdf', '--header-center', 'foo foo foo', '--print-media-type', '--page-size', 'letter', '--enable-local-file-access', html_filename, pdf_filename]
-    logging.info('executing %s', pdf_args)
-    pdfize = subprocess.run(pdf_args)
-    if pdfize.returncode != 0:
-        logging.error ('got rc = %d', typeset.returncode)
-        return None
+    if use_wkhtmltopdf:
+        pdf_args = [ 'wkhtmltopdf', '--header-center', 'foo foo foo', '--print-media-type', '--page-size', 'letter', '--enable-local-file-access', html_filename, pdf_filename]
+        logging.info('executing %s', pdf_args)
+        pdfize = subprocess.run(pdf_args)
+        if pdfize.returncode != 0:
+            logging.error ('got rc = %d', typeset.returncode)
+            return None
+    else:
+        weasy = weasyprint.HTML(filename=html_filename)
+        weasy.write_pdf(target=pdf_filename)
+
     return pdf_filename
 
 
@@ -91,6 +99,7 @@ where Setlists.name = ?
         pdf_file = generate_path_pdf(chordpro=f'{args.dir}/{p}', transpose=t, tempdir_path=tempdir)
         if pdf_file is not None:
             output_pdfs.append(pdf_file)
+            #break
 
     logging.info('output PDFs = %s', output_pdfs)
 
