@@ -1,4 +1,5 @@
 import argparse
+import io
 import logging
 import pathlib
 import shutil
@@ -8,6 +9,7 @@ import tempfile
 
 import sqlite3
 
+from bs4 import BeautifulSoup
 import pypdf
 import weasyprint
 
@@ -23,28 +25,35 @@ def generate_path (tempdir_path, filename, suffix):
 
 def generate_path_pdf(chordpro: str = None, transpose = 0, tempdir_path = None):
     html_filename = generate_path(tempdir_path, chordpro, '.html')
+
     typeset_args = ['chordpro', '--generate=HTML', f'--output={html_filename}', '--diagrams=none', '--no-strict']
     if transpose is not None and transpose != 0:
         typeset_args.append(f'--transpose={transpose}')
     typeset_args.append(chordpro)
     logging.info('executing %s', typeset_args)
     typeset = subprocess.run(typeset_args)
-
     if typeset.returncode != 0:
         logging.error ('got rc = %d', typeset.returncode)
         return None
 
+    fixed_html_filename = generate_path(tempdir_path, chordpro, '_fixed.html')
+    with open(html_filename) as fp:
+        soup = BeautifulSoup(fp, 'html.parser')
+
+        for tag in soup.find_all("tr", class_="chords"):
+            for td in tag.find_all('td'):
+                chord = td.string
+                if chord.startswith('*'):
+                    chord2 = chord[1:]
+                    td.string = chord2
+
+        with open(fixed_html_filename, "wb") as file:
+            file.write(soup.prettify("utf-8", formatter=None))
+
     pdf_filename = generate_path(tempdir_path, chordpro, '.pdf')
-    if use_wkhtmltopdf:
-        pdf_args = [ 'wkhtmltopdf', '--header-center', 'foo foo foo', '--print-media-type', '--page-size', 'letter', '--enable-local-file-access', html_filename, pdf_filename]
-        logging.info('executing %s', pdf_args)
-        pdfize = subprocess.run(pdf_args)
-        if pdfize.returncode != 0:
-            logging.error ('got rc = %d', typeset.returncode)
-            return None
-    else:
-        weasy = weasyprint.HTML(filename=html_filename)
-        weasy.write_pdf(target=pdf_filename)
+
+    weasy = weasyprint.HTML(filename=fixed_html_filename)
+    weasy.write_pdf(target=pdf_filename)
 
     return pdf_filename
 
@@ -105,6 +114,28 @@ where Setlists.name = ?
 
     merger = pypdf.PdfWriter()
 
+    blank_page_html = '''
+<!DOCTYPE html>
+<html lang="en"><head><style>
+    html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        width: 100%;
+    }
+    body {
+        display: table;
+    }
+    .middle {
+        text-align: center;
+        display: table-cell;
+        vertical-align: middle;
+    }
+</style></head><body><div class="middle">This page intentionally left blank.</div></body></html>
+    '''
+    blank_page_pdf = io.BytesIO()
+    weasyprint.HTML(string=blank_page_html).write_pdf(blank_page_pdf)
+
     for pdf in output_pdfs:
         adding_reader = pypdf.PdfReader(pdf)
         adding_page_count = adding_reader.get_num_pages()
@@ -116,7 +147,9 @@ where Setlists.name = ?
         if adding_page_count % 2 == 0:
             if result_page_count % 2 == 0:
                 logging.info('adding a blank page')
-                merger.add_blank_page()
+                # TODO: say "this page left blank". as is, adding a blank page to an empty doc will probably fail
+                #merger.add_blank_page()
+                merger.append(blank_page_pdf)
 
         merger.append(adding_reader)
 
