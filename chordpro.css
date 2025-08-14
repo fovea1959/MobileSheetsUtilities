@@ -1,0 +1,49 @@
+.song {
+  display: flex;
+  flex-direction: column;
+}
+
+#.title {
+#  align-self: center;
+#  font-family: sans-serif;
+#  font-weight: bold;
+#  font-size: xx-large;
+#}
+
+.label {
+  font-family: sans-serif;
+  font-weight: bold;
+  font-size: large;
+}
+
+.verse {
+  border-top: 2px solid black;
+  page-break-inside: avoid;
+}
+
+.chords, .lyrics {
+  font-family: "Consolas", "Liberation Mono", Menlo, Courier, monospace;
+}
+
+.chords {
+  font-weight: bold;
+}
+
+@media print {
+    .title {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        /* Add any desired styling for the header, e.g., background, padding, text color */
+        background-color: #f0f0f0;
+        padding: 10px;
+        text-align: center;
+        border-bottom: 1px solid #ccc;
+    }
+
+    /* Add padding to the body to prevent content from being hidden by the fixed header */
+    body {
+        padding-top: 60px; /* Adjust this value based on your header's height */
+    }
+}
