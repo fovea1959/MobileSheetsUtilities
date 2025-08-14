@@ -29,6 +29,12 @@
   font-weight: bold;
 }
 
+.comment_box {
+  border: 2px solid grey;
+  padding: 0px 5px;
+  display: inline-block; /* not full width */
+}
+
 @page  {
   size: letter;
   margin: 20mm;

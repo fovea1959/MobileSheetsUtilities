@@ -106,6 +106,10 @@ where Setlists.name = ?
     merger = pypdf.PdfWriter()
 
     for pdf in output_pdfs:
+        adding_reader = pypdf.PdfReader(pdf)
+        adding_page_count = adding_reader.get_num_pages()
+        result_page_count = merger.get_num_pages()
+        logging.info ('adding %d pages from %s to existing %d pages', adding_page_count, pdf, result_page_count)
         merger.append(pdf)
 
     merger.write("result.pdf")
