@@ -117,21 +117,22 @@ where Setlists.name = ?
     blank_page_html = '''
 <!DOCTYPE html>
 <html lang="en"><head><style>
-    html, body {
-        height: 100%;
-        margin: 0;
-        padding: 0;
-        width: 100%;
-    }
-    body {
-        display: table;
-    }
-    .middle {
-        text-align: center;
-        display: table-cell;
-        vertical-align: middle;
-    }
-</style></head><body><div class="middle">This page intentionally left blank.</div></body></html>
+html, body {
+    height: 100%;
+    margin: 0; /* Remove default body margin */
+}
+
+.container {
+    display: flex;
+    justify-content: center; /* For horizontal centering */
+    align-items: center; /* For vertical centering */
+    height: 100%; /* Or a specific height if not full page */
+}
+
+.middle {
+    /* Your div's styles */
+}
+</style></head><body><div class="container"><div class="middle">This page intentionally left blank.</div></div></body></html>
     '''
     blank_page_pdf = io.BytesIO()
     weasyprint.HTML(string=blank_page_html).write_pdf(blank_page_pdf)
@@ -147,8 +148,6 @@ where Setlists.name = ?
         if adding_page_count % 2 == 0:
             if result_page_count % 2 == 0:
                 logging.info('adding a blank page')
-                # TODO: say "this page left blank". as is, adding a blank page to an empty doc will probably fail
-                #merger.add_blank_page()
                 merger.append(blank_page_pdf)
 
         merger.append(adding_reader)
